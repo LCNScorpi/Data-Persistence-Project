@@ -12,6 +12,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
 
     private bool m_Started = false;
@@ -57,6 +58,12 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        // If the data has been uploaded, we show it
+        if (DataManager.Instance != null && DataManager.Instance.HighScore > 0)
+        {
+            BestScoreText.text = $"Best Score : {DataManager.Instance.HighScorePlayerName} : {DataManager.Instance.HighScore}";
+        }
     }
 
     private void Update()
@@ -87,11 +94,25 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+
+        // Checking if we have broken the record
+        if(m_Points > DataManager.Instance.HighScore)
+        {
+            // Updating the data in the singleton
+            DataManager.Instance.HighScore = m_Points;
+            DataManager.Instance.HighScorePlayerName = DataManager.Instance.PlayerName;
+
+            // Update the text of the record on the screen right during the game
+            BestScoreText.text = $"Best Score : {DataManager.Instance.HighScorePlayerName} : {DataManager.Instance.HighScore}";
+        }
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        // The game is over, it's time to physically record the record in a file.
+        DataManager.Instance.SaveHighScore();
     }
 }
